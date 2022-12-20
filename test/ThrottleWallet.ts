@@ -1,5 +1,4 @@
-import { time, loadFixture } from "@nomicfoundation/hardhat-network-helpers";
-import { anyValue } from "@nomicfoundation/hardhat-chai-matchers/withArgs";
+import { mine } from "@nomicfoundation/hardhat-network-helpers";
 import { expect } from "chai";
 import { ethers } from "hardhat";
 
@@ -30,6 +29,12 @@ describe("ThrottleWallet", function () {
       await expect(
         throttleWallet.spend(dan.address, 20_000)
       ).to.be.revertedWith("lacking limit");
+      await expect(throttleWallet.spend(dan.address, 5_000)).to.be.revertedWith(
+        "lacking limit"
+      );
+      await mine(2);
+
+      await throttleWallet.spend(dan.address, 5_000);
     });
   });
 });

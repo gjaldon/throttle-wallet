@@ -75,8 +75,9 @@ contract ThrottleWallet {
     }
 
     function refillLimit(uint256 _lastBlockSpent) internal {
-        if (_lastBlockSpent != block.number) {
-            uint256 newLimit = spendingLimit[msg.sender] + refillRate;
+        if (block.number > _lastBlockSpent) {
+            uint256 delta = block.number - _lastBlockSpent;
+            uint256 newLimit = spendingLimit[msg.sender] + (refillRate * delta);
             spendingLimit[msg.sender] = maxLimit < newLimit ? maxLimit : newLimit;
             lastBlockSpent[msg.sender] = block.number;
         }
