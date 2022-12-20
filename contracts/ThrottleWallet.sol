@@ -5,7 +5,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 // Uncomment this line to use console.log
-// import "hardhat/console.sol";
+import "hardhat/console.sol";
 
 contract ThrottleWallet {
     event Deposited(address indexed sender, address indexed account, uint256 amount);
@@ -35,7 +35,7 @@ contract ThrottleWallet {
         require(token.allowance(msg.sender, address(this)) >= amount, "lacking allowance");
 
         balances[account] += amount;
-        SafeERC20.safeTransfer(token, address(this), amount);
+        SafeERC20.safeTransferFrom(token, msg.sender, address(this), amount);
 
         emit Deposited({
             sender: msg.sender,
@@ -58,7 +58,7 @@ contract ThrottleWallet {
         }
 
         balances[msg.sender] -= amount;
-        SafeERC20.safeTransferFrom(token, address(this), recipient, amount);
+        SafeERC20.safeTransfer(token, recipient, amount);
 
         emit Spent({
             account: msg.sender,
