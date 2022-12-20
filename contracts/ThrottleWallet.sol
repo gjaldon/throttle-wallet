@@ -18,6 +18,7 @@ contract ThrottleWallet {
     mapping(address => uint256) public balances;
     mapping(address => uint256) public spendingLimit;
     mapping(address => bool) public spent;
+    mapping(address => uint256) public lastBlockSpent;
 
     constructor(address _token, uint256 _maxLimit, uint256 _refillRate) {
         require(_token != address(0), "token can not be zero address");
@@ -44,8 +45,10 @@ contract ThrottleWallet {
     }
 
     function spend(address recipient, uint256 amount) external {
+        uint256 _lastBlockSpent = lastBlockSpent[msg.sender];
+        refillLimit(_lastBlockSpent);
         require(balances[msg.sender] >= amount, "lacking balance");
-        bool _spent = spent[msg.sender];
+        bool _spent = _lastBlockSpent > 0;
         require(getLimit(msg.sender, _spent) >= amount, "lacking limit");
 
         if (_spent) {
@@ -69,5 +72,13 @@ contract ThrottleWallet {
             return spendingLimit[account];
         }
         return maxLimit;
+    }
+
+    function refillLimit(uint256 _lastBlockSpent) internal {
+        if (_lastBlockSpent != block.number) {
+            uint256 newLimit = spendingLimit[msg.sender] + refillRate;
+            spendingLimit[msg.sender] = maxLimit < newLimit ? maxLimit : newLimit;
+            lastBlockSpent[msg.sender] = block.number;
+        }
     }
 }
